@@ -26,9 +26,11 @@ module Pika
       if File.exist? file
         Operator.new.status(File.expand_path file)
       else
-        abort "Couldn't find the file '#{file}'"
+        abort "Couldn't find Pika config file '#{file}'"
       end
     end
+
+    default_task :sync
 
   end
 
