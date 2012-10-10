@@ -9,17 +9,20 @@ module Pika
       puts "Using config file: #{config_file}"
       initialize_locals
       puts "#{pluralize(missing_files_names.length, "tracks")} to download".yellow
+      extract_missing_files_urls
       if missing_files_urls
         begin
           print "Download missing files? [Yn]: "
           input = STDIN.gets
         end while not ["Y", "y", "N", "n"].include? input.chomp
         if positive?(input.chomp)
-          extract_missing_files_urls
           print_info_table
           puts
           download_missing_files
         end
+      else
+        puts "Nothing to do here.".green
+        puts "Terminating."
       end
     end
 
@@ -30,7 +33,7 @@ module Pika
       puts
       missing_files_urls.each_with_index do |file, idx|
         filename = file.split("/").last
-        puts "(#{idx + 1}/#{missing_files_urls.length})Downloading: " + file.green + " => " + filename.green
+        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green
         `curl -# -o #{filename} "#{file}"`
         puts
       end
@@ -94,6 +97,7 @@ module Pika
     end
 
     def extract_missing_files_urls
+      return [] if missing_files_names.empty?
       missing_files_names.each do |mf|
         (@missing_files_urls ||= []) << remote_tracks_urls.select { |el| el.split("/").last == mf }
       end
