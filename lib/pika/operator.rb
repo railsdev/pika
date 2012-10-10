@@ -4,10 +4,14 @@ module Pika
 
     attr_reader :remote_tracks_urls, :missing_files_names, :missing_files_urls, :config_file, :missing_files_total_size
 
-    def status(file)
+    def status(file, local = false)
       @config_file = file
-      puts "Using config file: #{config_file}"
-      initialize_locals
+      if local
+        puts "Using local playlist file"
+      else
+        puts "Using config file: #{config_file}"
+      end
+      initialize_locals(file)
       puts "#{pluralize(missing_files_names.length, "tracks")} to download".yellow
       extract_missing_files_urls
       if missing_files_urls
@@ -16,6 +20,7 @@ module Pika
           input = STDIN.gets
         end while not ["Y", "y", "N", "n"].include? input.chomp
         if positive?(input.chomp)
+          puts "Fetching files information. This may take some time..."
           print_info_table
           puts
           download_missing_files
@@ -45,6 +50,7 @@ module Pika
       @missing_files_total_size = 0
       missing_files_urls.each do |file_url|
         file_size = estimate_file_size(URI(file_url))
+        puts file_url
         @missing_files_total_size += file_size
         rows << [file_url.split("/").last, ("%5.2f" %file_size).green]
         rows << :separator unless file_url == missing_files_urls.last
@@ -69,8 +75,12 @@ module Pika
       response.body.to_s
     end
 
-    def initialize_locals
-      x = XSPF.new(fetch_playlist)
+    def initialize_locals(content = nil)
+      if content
+        x = XSPF.new(content)
+      else
+        x = XSPF.new(fetch_playlist)
+      end
       pl = XSPF::Playlist.new(x)
       tl = XSPF::Tracklist.new(pl)
       print "#{pluralize(tl.tracks.count, "track")} found".green + ", "
