@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["davide.targa@gmail.com"]
   gem.description   = %q{Download files from xspf playlists}
   gem.summary       = %q{Download files from xspf playlists}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/davide-targa/pika"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
