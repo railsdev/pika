@@ -2,7 +2,7 @@ module Pika
 
   class Operator
 
-    attr_reader :remote_tracks_urls, :missing_files_names, :missing_files_urls, :config_file, :missing_files_total_size
+    attr_reader :remote_tracks_urls, :missing_files_names, :missing_files_urls, :config_file
 
     def status(file, local = false)
       @config_file = file
@@ -10,8 +10,9 @@ module Pika
         puts "Using local playlist file"
       else
         puts "Using config file: #{config_file}"
+        @config_file = fetch_playlist
       end
-      initialize_locals(file)
+      initialize_locals(config_file)
       puts "#{pluralize(missing_files_names.length, "tracks")} to download".yellow
       extract_missing_files_urls
       if missing_files_urls
@@ -21,7 +22,6 @@ module Pika
         end while not ["Y", "y", "N", "n"].include? input.chomp
         if positive?(input.chomp)
           puts "Fetching files information. This may take some time..."
-          print_info_table
           puts
           download_missing_files
         end
@@ -38,26 +38,11 @@ module Pika
       puts
       missing_files_urls.each_with_index do |file, idx|
         filename = file.split("/").last
-        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green
+        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green + " - " + estimate_file_size(file) + " MB"
         `curl -# -o #{filename} "#{file}"`
         puts
       end
       puts "Done.".green
-    end
-
-    def print_info_table
-      rows = []
-      @missing_files_total_size = 0
-      missing_files_urls.each do |file_url|
-        file_size = estimate_file_size(URI(file_url))
-        puts file_url
-        @missing_files_total_size += file_size
-        rows << [file_url.split("/").last, ("%5.2f" %file_size).green]
-        rows << :separator unless file_url == missing_files_urls.last
-      end
-      rows << :separator
-      rows << ["Total size".red, ("%8.2f" %missing_files_total_size.to_s).red]
-      puts Terminal::Table.new :headings => ['File name'.green, 'File size (MB)'.green], :rows => rows, :style => {:padding_left => 3, :padding_right => 3}
     end
 
     def estimate_file_size(url)
