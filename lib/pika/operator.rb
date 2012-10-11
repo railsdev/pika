@@ -38,7 +38,7 @@ module Pika
       puts
       missing_files_urls.each_with_index do |file, idx|
         filename = file.split("/").last
-        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green + " - " + estimate_file_size(file) + " MB"
+        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green + " - " + ("%5.2f" %estimate_file_size(URI(file))) + " MB"
         `curl -# -o #{filename} "#{file}"`
         puts
       end
