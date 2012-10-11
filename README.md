@@ -20,6 +20,10 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+## Changelog
+
+You can see the changelog [here](https://github.com/davide-targa/pika/blob/master/CHANGELOG.md)
+
 ## Contributing
 
 1. Fork it
