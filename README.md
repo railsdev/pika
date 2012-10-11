@@ -12,7 +12,9 @@ Done! Easy isn't it?
 
 ## Usage
 
-Pika can synchronize playlist through both local or remote playlist files. You can place playlist or configuration files in a separate folders so you can synchronize them independently.
+Pika can synchronize playlist through both local or remote playlist files.
+
+You can place playlist or configuration files in separate folders so you can synchronize them independently.
 
 ### Local playlist file
 
