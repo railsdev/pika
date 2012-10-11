@@ -1,24 +1,18 @@
 # Pika
 
-TODO: Write a gem description
+Pika is a command line tool to manage the download and the synchronization of _xspi_ playlists. You can install it as a global gem so that the command is available in all the system.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+From any directory type:
 
-    gem 'pika'
+`gem install pika`
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install pika
+Done! Easy isn't it?
 
 ## Usage
 
-TODO: Write usage instructions here
+
 
 ## Changelog
 
