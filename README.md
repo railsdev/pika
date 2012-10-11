@@ -12,7 +12,28 @@ Done! Easy isn't it?
 
 ## Usage
 
+Pika can synchronize playlist through both local or remote playlist files.
 
+### Local playlist file
+
+Let's suppose you want synchronize a local playlist file called `playlist.xspf`.
+Put the file inside a folder and `cd` inside that folder. Now simply launch
+
+`pika`
+
+and the synchronization should begin. Pika looks by default for a file in the current directory called `playlist.xspf`. If you need to customize the name of the _xspf_ file being used, use the `-f` parameter:
+
+`pika -f my_playlist.xspf`
+
+### Remote playlist file
+
+To use a remote _xspf_ file, create (in a new directory) a file named `pika.conf` and paste the url of the playlist in the first line of this file. Now to launch the synchronization simply type:
+
+`pika`
+
+and the synchronization should begin. Again `pika` looks by default for a file called `pika.conf`. If you need to customize the config file name, use the -i parameter:
+
+`pika -i my_conf.conf`
 
 ## Changelog
 
