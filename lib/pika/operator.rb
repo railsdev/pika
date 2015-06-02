@@ -3,8 +3,10 @@ module Pika
   class Operator
   	require 'open-uri'
     attr_reader :remote_tracks_urls, :missing_files_names, :missing_files_urls, :config_file
+    attr_accessor :tracks_hash
 
     def status(file, local = false)
+      tracks_hash = {}
       @config_file = file
       if local
         puts "Using local playlist file"
@@ -15,6 +17,7 @@ module Pika
       initialize_locals(config_file)
       puts "#{pluralize(missing_files_names.length, "tracks")} to download".yellow
       extract_missing_files_urls
+
       if missing_files_urls
         begin
           print "Download missing files? [Yn]: "
@@ -39,11 +42,11 @@ module Pika
       puts "### DOWNLOADING FILES ###".green
       puts
       missing_files_urls.each_with_index do |file, idx|
-        filename = file.split("/").last
-        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file.green + " => " + filename.green + " - " + ("%5.2f" %estimate_file_size(URI(file))) + " MB"
+        filename = file[:title]
+        puts "(#{idx + 1}/#{missing_files_urls.length}) Downloading: " + file[:location].green + " => " + filename.green + " - " + ("%5.2f" %estimate_file_size(URI(file[:location]))) + " MB"
         begin
-          file_data = open(file) {|f| f.read }
-          open("#{idx}.mp3", "wb") do |fi|
+          file_data = open(file[:location]) {|f| f.read }
+          open("#{filename}.mp3", "wb") do |fi|
             fi.write(file_data)
           end
         rescue OpenURI::HTTPError
@@ -56,10 +59,12 @@ module Pika
 
     def estimate_file_size(url)
       response = nil
-      Net::HTTP.start(url.host, url.port, :use_ssl => url.scheme == 'https') do |http|
-        response = http.head(url.path)
+      if url.host && url.port
+        Net::HTTP.start(url.host, url.port, :use_ssl => url.scheme == 'https') do |http|
+          response = http.head(url.path)
+        end
       end
-      response['content-length'].to_i / 1024.0 / 1024
+      response ? response['content-length'].to_i/1024.0/1024 : 0
     end
 
     def fetch_playlist
@@ -80,18 +85,28 @@ module Pika
       tl = XSPF::Tracklist.new(pl)
       print "#{pluralize(tl.tracks.count, "track")} found".green + ", "
       tl.tracks.each do |track|
-        (@remote_tracks_urls ||= []) << track.location
+        (@remote_tracks_urls ||= []) << {:title => sanitize_filename(track.title.gsub(/-/, '')), :cover => track.image, :location => track.location}
       end
-       
-      @missing_files_names = @remote_tracks_urls.map do |track_url| 
-        if track_url =~ /soundcloud/
-          id = URI(track_url).path[/(\d+)(?:\/)/]
+      tracks_hash ||= {}
+
+      @missing_files_names = @remote_tracks_urls.map do |track|
+
+        if track[:location] =~ /soundcloud/
+          id = URI(track[:location]).path[/(\d+)(?:\/)/]
           id.delete!("/")
+          tracks_hash[id] = track
           id
         else
-          URI(track_url).path.split("/").last 
+          URI(track[:location]).path.split("/").last
         end
-      end - files_in_current_directory
+      end
+      #binding.pry
+      @missing_files_names.delete_if{|x| tracks_hash[x] && files_in_current_directory.include?(tracks_hash[x][:title] + ".mp3")}
+
+    end
+
+    def sanitize_filename(file_name)
+      file_name.gsub(/[^\w\.\-]/,"_")
     end
 
     def positive?(string)
@@ -113,7 +128,8 @@ module Pika
     def extract_missing_files_urls
       return [] if missing_files_names.empty?
       missing_files_names.each do |mf|
-        (@missing_files_urls ||= []) << remote_tracks_urls.select { |el| el =~ /#{mf}/ }
+
+        (@missing_files_urls ||= []) << remote_tracks_urls.select { |el| el[:location] =~ /#{mf}/ }
       end
       @missing_files_urls.flatten!
     end
